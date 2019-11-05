@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package example;
+option go_package = "github.com/ponteilla/protoc-gen-twirpts/example";
+
+message Hat {
+  int32 size = 1;
+  string color = 2;
+  string name = 3;
+  repeated Ribon ribons = 4;
+}
+
+message Size { int32 inches = 1; }
+
+message Ribon { string color = 1; }
+
+service Haberdasher { rpc MakeHat(Size) returns (Hat); }
