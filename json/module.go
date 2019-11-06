@@ -110,7 +110,6 @@ func (m *module) Execute(targets map[string]pgs.File, packages map[string]pgs.Pa
 						"Services": f.Services(),
 					},
 				)
-
 				m.AddGeneratorFile("twirp.ts", twirpTemplate)
 			}
 		}
@@ -146,7 +145,7 @@ func (m *module) wkTyper(wkType pgs.WellKnownType) pgs.Name {
 		return m
 	}
 
-	m.Fail("unknown well known type")
+	m.Failf("unknown well known type: %s", wkType.Name())
 	return pgs.Name("")
 }
 
@@ -179,13 +178,12 @@ func (m *module) fieldTyper(f pgs.Field) pgs.Name {
 		}
 	}
 
-	m.Fail("unknown field type")
+	m.Failf("unknown field type: %s", f.FullyQualifiedName())
 	return pgs.Name("")
 }
 
 func (m *module) caster(f pgs.Field) pgs.Name {
 	jsonFieldName := jsonFieldNamer(f)
-
 	_, wellKnown := isWellKnown(f)
 
 	switch {
