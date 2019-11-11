@@ -1,5 +1,3 @@
-
-
 // @@protoc_insertion_point(plugin_imports)
 
 export interface Glitter {

@@ -61,7 +61,7 @@ export const {{ $i.Name }}ToJSON = (m: {{ $i.Name }}): {{ $i.Name }}JSON => {
     return acc;
   }, {} as {{ $i.Name }}JSON);
 };
-{{ end }}
+{{- end }}
 {{- end }}
 `
 
@@ -91,9 +91,9 @@ export const {{ .Name.LowerCamelCase }} = (requestParams: Twirp.RequestParameter
 `
 
 const importsTemplate = `
-{{ range $f, $i := index .FileImports .InputPath }}
+{{- range $f, $i := index .FileImports .InputPath -}}
 import { {{$i.Name}}, {{$i.Name}}JSON, {{$i.Name}}ToJSON, JSONTo{{$i.Name}} } from '{{$i.Path}}'
-{{ end }}
+{{ end -}}
 `
 
 const twirpTemplate = `

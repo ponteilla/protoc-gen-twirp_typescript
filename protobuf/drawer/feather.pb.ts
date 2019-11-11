@@ -1,7 +1,4 @@
-
-
 import { Glitter, GlitterJSON, GlitterToJSON, JSONToGlitter } from './glitter.pb'
-
 // @@protoc_insertion_point(plugin_imports)
 
 export interface Feather {

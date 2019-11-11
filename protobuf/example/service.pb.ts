@@ -1,7 +1,4 @@
-
-
 import { Feather, FeatherJSON, FeatherToJSON, JSONToFeather } from '../drawer/feather.pb'
-
 // @@protoc_insertion_point(plugin_imports)
 
 export interface Hat {
