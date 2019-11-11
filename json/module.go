@@ -157,7 +157,7 @@ func (m *module) addTypeImport(f pgs.Field) {
 
 func (m *module) Execute(targets map[string]pgs.File, packages map[string]pgs.Package) []pgs.Artifact {
 	for _, p := range packages {
-		if isWellKnowPackage(p.ProtoName()) {
+		if isWellKnownPackage(p.ProtoName()) {
 			continue
 		}
 
@@ -188,7 +188,7 @@ func (m *module) Execute(targets map[string]pgs.File, packages map[string]pgs.Pa
 	}
 
 	for _, p := range packages {
-		if isWellKnowPackage(p.ProtoName()) {
+		if isWellKnownPackage(p.ProtoName()) {
 			continue
 		}
 

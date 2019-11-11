@@ -2,7 +2,7 @@ package json
 
 import pgs "github.com/lyft/protoc-gen-star"
 
-func isWellKnowPackage(name pgs.Name) bool {
+func isWellKnownPackage(name pgs.Name) bool {
 	return name == pgs.WellKnownTypePackage || name == pgs.Name("validate")
 }
 

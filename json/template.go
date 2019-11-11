@@ -62,7 +62,7 @@ export const {{ $i.Name }}ToJSON = (m: {{ $i.Name }}): {{ $i.Name }}JSON => {
   }, {} as {{ $i.Name }}JSON);
 };
 {{ end }}
-{{- end -}}
+{{- end }}
 `
 
 const clientTemplate = `// @@protoc_insertion_point(plugin_imports)
