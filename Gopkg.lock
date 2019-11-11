@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:e30c6d6cdf7775abf1142b440a23b095805ad7cca803ad865b1aa1491c5c2880"
+  digest = "1:608fc82deb7fb40091afd8a37a8480f7e511d83ffdb2501beeff711e5ffd6def"
   name = "github.com/golang/protobuf"
   packages = [
     "jsonpb",
@@ -10,18 +10,19 @@
     "protoc-gen-go/descriptor",
     "protoc-gen-go/plugin",
     "ptypes/struct",
+    "ptypes/timestamp",
   ]
   pruneopts = "UT"
   revision = "6c65a5562fc06764971b7c5d05c76c75e84bdbf7"
   version = "v1.3.2"
 
 [[projects]]
-  digest = "1:61ccfc22b990d41fd35fcb9eb25cc61bfa597b6f0e7b4d4fb4763a7f9336798c"
+  digest = "1:3e4e48c9f105d853f5e11c8b3375fdbdc67a232b719d9735f37e817b1af76b31"
   name = "github.com/lyft/protoc-gen-star"
   packages = ["."]
   pruneopts = "UT"
-  revision = "6c0470b785d07d39f59cd434f9c0ce0682b5c4aa"
-  version = "v0.4.11"
+  revision = "4423c004ec45b908f9883cd959bc1795f1d134af"
+  version = "v0.4.12"
 
 [[projects]]
   digest = "1:bb495ec276ab82d3dd08504bbc0594a65de8c3b22c6f2aaa92d05b73fbf3a82e"
@@ -35,7 +36,7 @@
   version = "v1.2.2"
 
 [[projects]]
-  digest = "1:e6a64fc457345cdd841c7a78b20ef76e3b7cbbcac0068428725fe8903d37f5de"
+  digest = "1:7b226abe6e9a8ef9148fd5ad5a3ba2d83c34d339e6caa2daa8176e95da65474a"
   name = "github.com/twitchtv/twirp"
   packages = [
     ".",
@@ -43,8 +44,8 @@
     "internal/contextkeys",
   ]
   pruneopts = "UT"
-  revision = "fd9eb15637a0de1559e002f8601ca4f1459e0cd3"
-  version = "v5.8.0"
+  revision = "525a6ca20f0ed4fe66a00e512d7487399f1322f9"
+  version = "v5.9.0"
 
 [[projects]]
   digest = "1:1093f2eb4b344996604f7d8b29a16c5b22ab9e1b25652140d3fede39f640d5cd"
@@ -67,6 +68,7 @@
   input-imports = [
     "github.com/golang/protobuf/jsonpb",
     "github.com/golang/protobuf/proto",
+    "github.com/golang/protobuf/ptypes/timestamp",
     "github.com/lyft/protoc-gen-star",
     "github.com/twitchtv/twirp",
     "github.com/twitchtv/twirp/ctxsetters",

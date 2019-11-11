@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package drawer;
+
+option go_package = "github.com/sailmetrix/protoc-gen-twirp_typescript/protobuf/drawer";
+
+message Glitter { bool is_gel = 1; }

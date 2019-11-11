@@ -2,7 +2,11 @@ package json
 
 import pgs "github.com/lyft/protoc-gen-star"
 
-func isWellKnown(f pgs.Field) (pgs.WellKnownType, bool) {
+func isWellKnownPackage(name pgs.Name) bool {
+	return name == pgs.WellKnownTypePackage || name == pgs.Name("validate")
+}
+
+func isWellKnownType(f pgs.Field) (pgs.WellKnownType, bool) {
 	if f.Type().IsEmbed() {
 		wkt := pgs.LookupWKT(f.Type().Embed().Name())
 		return wkt, wkt.Valid()
@@ -89,6 +93,10 @@ func isMapPrimitive(f pgs.Field) bool {
 
 func isMessage(f pgs.Field) bool {
 	return f.Type().ProtoType() == pgs.MessageT
+}
+
+func isImported(f pgs.Field) bool {
+	return true
 }
 
 func lowerCamelCaser(n pgs.Name) pgs.Name {

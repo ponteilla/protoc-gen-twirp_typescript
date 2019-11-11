@@ -1,7 +1,7 @@
 package json
 
-const messageTemplate = `
-{{- range .Enums }}
+const messageTemplate = `// @@protoc_insertion_point(plugin_imports)
+{{ range .Enums }}
 export enum {{ EntityNamer . }} {
   {{- range .Values }}
   {{ .Name }} = "{{ .Name }}",
@@ -37,35 +37,35 @@ export const JSONTo{{ $message_name }} = (m: {{ $message_name }}JSON): {{ $messa
     {{- end }}
   };
 };
-{{ end }}
-{{- range .MapMessages }}
-export interface {{ .Name }} {
-  [key: string]: {{ .Type }};
+{{- end }}
+{{- range $f, $i := index .MapMessages .InputPath }}
+export interface {{ $i.Name }} {
+  [key: string]: {{ $i.Type }};
 }
 
-export interface {{ .Name }}JSON {
-  [key: string]: {{ .Type }}{{- if .IsMessage }}JSON{{ end }};
+export interface {{ $i.Name }}JSON {
+  [key: string]: {{ $i.Type }}{{- if $i.IsMessage }}JSON{{ end }};
 }
 
-{{- if .IsMessage }}
-export const JSONTo{{ .Name }} = (m: {{ .Name }}JSON): {{ .Name }} => {
+{{- if $i.IsMessage }}
+export const JSONTo{{ $i.Name }} = (m: {{ $i.Name }}JSON): {{ $i.Name }} => {
   return Object.keys(m).reduce((acc, key) => {
-    acc[key] = JSONTo{{ .Type }}(m[key]);
+    acc[key] = JSONTo{{ $i.Type }}(m[key]);
     return acc;
-  }, {} as {{ .Name }});
+  }, {} as {{ $i.Name }});
 };
 
-export const {{ .Name }}ToJSON = (m: {{ .Name }}): {{ .Name }}JSON => {
+export const {{ $i.Name }}ToJSON = (m: {{ $i.Name }}): {{ $i.Name }}JSON => {
   return Object.keys(m).reduce((acc, key) => {
-    acc[key] = {{ .Type }}ToJSON(m[key]);
+    acc[key] = {{ $i.Type }}ToJSON(m[key]);
     return acc;
-  }, {} as {{ .Name }}JSON);
+  }, {} as {{ $i.Name }}JSON);
 };
-{{ end }}
-{{- end -}}
+{{- end }}
+{{- end }}
 `
 
-const clientTemplate = `
+const clientTemplate = `// @@protoc_insertion_point(plugin_imports)
 import * as Service from './service.pb'
 import * as Twirp from './twirp'
 
@@ -88,6 +88,12 @@ export const {{ .Name.LowerCamelCase }} = (requestParams: Twirp.RequestParameter
 };
 {{- end }}
 {{- end }}
+`
+
+const importsTemplate = `
+{{- range $f, $i := index .FileImports .InputPath -}}
+import { {{$i.Name}}, {{$i.Name}}JSON, {{$i.Name}}ToJSON, JSONTo{{$i.Name}} } from '{{$i.Path}}'
+{{ end -}}
 `
 
 const twirpTemplate = `

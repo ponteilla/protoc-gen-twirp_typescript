@@ -1,13 +1,20 @@
 syntax = "proto3";
 
 package example;
-option go_package = "github.com/ponteilla/protoc-gen-twirpts/example";
+
+option go_package = "github.com/sailmetrix/protoc-gen-twirpts/protobuf/example";
+
+import "google/protobuf/Timestamp.proto";
+import "drawer/feather.proto";
 
 message Hat {
   int32 size = 1;
   string color = 2;
   string name = 3;
   repeated Ribon ribons = 4;
+  map<string, drawer.Feather> plume = 5;
+
+  google.protobuf.Timestamp create_time = 6;
 }
 
 message Size { int32 inches = 1; }
