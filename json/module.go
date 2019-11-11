@@ -2,20 +2,27 @@ package json
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 	"text/template"
 
 	pgs "github.com/lyft/protoc-gen-star"
 )
 
+const ImportsInsertionPoint = "plugin_imports"
+
 var _ pgs.Module = (*module)(nil)
 
 type module struct {
 	*pgs.ModuleBase
 	messageTemplate *template.Template
+	importsTemplate *template.Template
 	clientTemplate  *template.Template
-	mapMessages     map[string]*mapMessage
+	mapMessages     map[string]mapMessages
+	fileImports     map[string]typeImports
 }
+
+type mapMessages map[string]*mapMessage
 
 type mapMessage struct {
 	Name      pgs.Name
@@ -23,10 +30,18 @@ type mapMessage struct {
 	IsMessage bool
 }
 
+type typeImports map[string]*typeImport
+
+type typeImport struct {
+	Name pgs.Name
+	Path pgs.FilePath
+}
+
 func Module() *module {
 	return &module{
 		ModuleBase:  &pgs.ModuleBase{},
-		mapMessages: make(map[string]*mapMessage),
+		mapMessages: make(map[string]mapMessages),
+		fileImports: make(map[string]typeImports),
 	}
 }
 
@@ -47,6 +62,10 @@ func (m *module) InitContext(c pgs.BuildContext) {
 		}).Parse(messageTemplate),
 	)
 
+	m.importsTemplate = template.Must(
+		template.New("imports").Funcs(map[string]interface{}{}).Parse(importsTemplate),
+	)
+
 	m.clientTemplate = template.Must(
 		template.New("client").Funcs(map[string]interface{}{
 			"EntityNamer":     m.entityNamer,
@@ -65,7 +84,7 @@ func (m *module) addMapMessage(fName pgs.Name, f pgs.Field) {
 		isMessage bool
 	)
 
-	wktT, wellKnown := isWellKnown(f)
+	wktT, wellKnown := isWellKnownType(f)
 	switch {
 	case wellKnown:
 		ttype = pgs.Name(m.wkTyper(wktT))
@@ -82,27 +101,80 @@ func (m *module) addMapMessage(fName pgs.Name, f pgs.Field) {
 		isMessage = true
 	}
 
-	m.mapMessages[fName.String()] = &mapMessage{
+	inputPath := f.File().InputPath().String()
+
+	if m.mapMessages[inputPath] == nil {
+		m.mapMessages[inputPath] = make(mapMessages)
+	}
+
+	m.mapMessages[inputPath][fName.String()] = &mapMessage{
 		Name:      fName,
 		Type:      ttype,
 		IsMessage: isMessage,
 	}
 }
 
+func (m *module) addTypeImport(f pgs.Field) {
+	if len(f.Imports()) != 1 {
+		m.Failf("field %s should have 1 import (%d)", f.Name(), len(f.Imports()))
+	}
+
+	inputPath := f.File().InputPath()
+
+	rel, err := filepath.Rel(inputPath.Dir().String(), f.Imports()[0].File().InputPath().String())
+	if err != nil {
+		m.Failf("type import relative path: %s", err)
+	}
+
+	fp := pgs.FilePath(rel)
+	fp = pgs.FilePath(fmt.Sprintf("%s/%s", fp.Dir(), fp.SetExt(".pb").Base()))
+
+	if m.fileImports[inputPath.String()] == nil {
+		m.fileImports[inputPath.String()] = make(typeImports)
+	}
+
+	var ttype pgs.Name
+
+	_, wellKnown := isWellKnownType(f)
+	switch {
+	case wellKnown:
+		return
+	case isRepeatedMessage(f), f.Type().IsMap():
+		ttype = pgs.Name(m.entityNamer(f.Type().Element().Embed()))
+	default:
+		ttype = pgs.Name(m.entityNamer(f.Type().Embed()))
+	}
+
+	if m.fileImports[inputPath.String()] == nil {
+		m.fileImports[inputPath.String()] = make(typeImports)
+	}
+
+	m.fileImports[inputPath.String()][ttype.String()] = &typeImport{
+		Name: ttype,
+		Path: fp,
+	}
+}
+
 func (m *module) Execute(targets map[string]pgs.File, packages map[string]pgs.Package) []pgs.Artifact {
 	for _, p := range packages {
-		for _, f := range p.Files() {
-			if f.BuildTarget() {
-				m.AddGeneratorTemplateFile(
-					f.InputPath().SetExt(".pb.ts").String(),
-					m.messageTemplate,
-					map[string]interface{}{
-						"Messages":    f.AllMessages(),
-						"MapMessages": m.mapMessages,
-						"Enums":       f.AllEnums(),
-					},
-				)
+		if isWellKnowPackage(p.ProtoName()) {
+			continue
+		}
 
+		for _, f := range p.Files() {
+			m.AddGeneratorTemplateFile(
+				f.InputPath().SetExt(".pb.ts").String(),
+				m.messageTemplate,
+				map[string]interface{}{
+					"InputPath":   f.InputPath().String(),
+					"Messages":    f.AllMessages(),
+					"MapMessages": m.mapMessages,
+					"Enums":       f.AllEnums(),
+				},
+			)
+
+			// generate twirp related things only if services are present
+			if f.BuildTarget() && len(f.Services()) > 0 {
 				m.AddGeneratorTemplateFile(
 					f.InputPath().SetExt(".client.ts").String(),
 					m.clientTemplate,
@@ -110,8 +182,25 @@ func (m *module) Execute(targets map[string]pgs.File, packages map[string]pgs.Pa
 						"Services": f.Services(),
 					},
 				)
-				m.AddGeneratorFile("twirp.ts", twirpTemplate)
+				m.AddGeneratorFile(f.InputPath().Dir().Push("twirp.ts").String(), twirpTemplate)
 			}
+		}
+	}
+
+	for _, p := range packages {
+		if isWellKnowPackage(p.ProtoName()) {
+			continue
+		}
+
+		for _, f := range p.Files() {
+			m.AddGeneratorTemplateInjection(
+				f.InputPath().SetExt(".pb.ts").String(),
+				ImportsInsertionPoint, m.importsTemplate,
+				map[string]interface{}{
+					"InputPath":   f.InputPath().String(),
+					"FileImports": m.fileImports,
+				},
+			)
 		}
 	}
 
@@ -150,7 +239,11 @@ func (m *module) wkTyper(wkType pgs.WellKnownType) pgs.Name {
 }
 
 func (m *module) fieldTyper(f pgs.Field) pgs.Name {
-	wktT, wellKnown := isWellKnown(f)
+	wktT, wellKnown := isWellKnownType(f)
+
+	if len(f.Imports()) == 1 {
+		m.addTypeImport(f)
+	}
 
 	// NB. the ordering of these cases matter
 	switch {
@@ -184,7 +277,7 @@ func (m *module) fieldTyper(f pgs.Field) pgs.Name {
 
 func (m *module) caster(f pgs.Field) pgs.Name {
 	jsonFieldName := jsonFieldNamer(f)
-	_, wellKnown := isWellKnown(f)
+	_, wellKnown := isWellKnownType(f)
 
 	switch {
 	case isRepeatedPrimitive(f):
@@ -225,7 +318,7 @@ func (m *module) jsonFieldTyper(f pgs.Field) pgs.Name {
 
 func (m *module) jsonCaster(f pgs.Field) pgs.Name {
 	fieldName := fieldNamer(f)
-	_, wellKnown := isWellKnown(f)
+	_, wellKnown := isWellKnownType(f)
 
 	switch {
 	case wellKnown, isRepeatedPrimitive(f), isMapPrimitive(f):
