@@ -5,10 +5,11 @@ package example
 
 import (
 	fmt "fmt"
+	math "math"
+
 	proto "github.com/golang/protobuf/proto"
 	timestamp "github.com/golang/protobuf/ptypes/timestamp"
-	drawer "github.com/sailmetrix/protoc-gen-twirp_typescript/protobuf/drawer"
-	math "math"
+	drawer "github.com/ponteilla/protoc-gen-twirp_typescript/protobuf/drawer"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.

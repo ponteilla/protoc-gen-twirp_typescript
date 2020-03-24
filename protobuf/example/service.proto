@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package example;
 
-option go_package = "github.com/sailmetrix/protoc-gen-twirpts/protobuf/example";
+option go_package = "github.com/ponteilla/protoc-gen-twirpts/protobuf/example";
 
 import "google/protobuf/Timestamp.proto";
 import "drawer/feather.proto";

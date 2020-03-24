@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package drawer;
 
-option go_package = "github.com/sailmetrix/protoc-gen-twirp_typescript/protobuf/drawer";
+option go_package = "github.com/ponteilla/protoc-gen-twirp_typescript/protobuf/drawer";
 
 import "drawer/glitter.proto";
 

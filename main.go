@@ -2,7 +2,7 @@ package main
 
 import (
 	pgs "github.com/lyft/protoc-gen-star"
-	"github.com/sailmetrix/protoc-gen-twirp_typescript/json"
+	"github.com/ponteilla/protoc-gen-twirp_typescript/json"
 )
 
 func main() {
